@@ -1,0 +1,63 @@
+[ {
+  "nume" : "Pizza Margherita",
+  "pret" : 45.0,
+  "vegetarian" : true,
+  "blat" : "CLASIC",
+  "sos" : "ROSU",
+  "toppings" : [ ]
+}, {
+  "nume" : "Paste Carbonara",
+  "pret" : 52.5,
+  "vegetarian" : false,
+  "gramaj" : 400
+}, {
+  "nume" : "Supa Veg",
+  "pret" : 24.0,
+  "vegetarian" : true,
+  "gramaj" : 300
+}, {
+  "nume" : "Limonada",
+  "pret" : 15.0,
+  "vegetarian" : true,
+  "volum" : 400
+}, {
+  "nume" : "Apa Plata",
+  "pret" : 8.0,
+  "vegetarian" : true,
+  "volum" : 500
+}, {
+  "nume" : "Lichior de Oua",
+  "pret" : 22.0,
+  "vegetarian" : false,
+  "volum" : 50
+}, {
+  "nume" : "Bruschette cu rosii",
+  "pret" : 18.0,
+  "vegetarian" : true,
+  "gramaj" : 120
+}, {
+  "nume" : "Salata Caprese",
+  "pret" : 22.0,
+  "vegetarian" : true,
+  "gramaj" : 150
+}, {
+  "nume" : "Chiftelute de pui",
+  "pret" : 20.0,
+  "vegetarian" : false,
+  "gramaj" : 100
+}, {
+  "nume" : "Tiramisu",
+  "pret" : 25.0,
+  "vegetarian" : true,
+  "gramaj" : 120
+}, {
+  "nume" : "Papanasi cu smantana si gem",
+  "pret" : 28.0,
+  "vegetarian" : true,
+  "gramaj" : 200
+}, {
+  "nume" : "Inghetata asortata",
+  "pret" : 15.0,
+  "vegetarian" : true,
+  "gramaj" : 100
+} ]
