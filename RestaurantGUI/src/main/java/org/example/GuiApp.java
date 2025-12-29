@@ -1,23 +1,31 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.converter.DoubleStringConverter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GuiApp extends Application {
     private final List<Produs> sampleList = new ArrayList<>();
-    // currently selected product (for commit logic)
-    private Produs currentSelected = null;
+    // track which product is currently bound to the price text field
+    private Produs boundPretProd = null;
+    // current TextFormatter used on txtPret (so we can unbind it on selection change)
+    private TextFormatter<Double> currentFormatter = null;
+    // listener attached to the current formatter's valueProperty
+    private ChangeListener<Double> currentFormatterListener = null;
 
     public static void main(String[] args) {
         // Launch JavaFX
@@ -34,14 +42,41 @@ public class GuiApp extends Application {
         ListView<Produs> listView = new ListView<>();
         javafx.collections.ObservableList<Produs> items = javafx.collections.FXCollections.observableArrayList(sampleList);
         listView.setItems(items);
+        // Reactive cell: listen to product properties so cell text updates automatically
         listView.setCellFactory(lv -> new ListCell<>() {
+            private Produs observed = null;
+            private final ChangeListener<Number> priceListener = (obs, oldV, newV) -> updateText();
+            private final ChangeListener<String> nameListener = (obs, oldV, newV) -> updateText();
+
+            private void updateText() {
+                Produs item = getItem();
+                try {
+                    if (item == null) setText(null);
+                    else setText(item.getNume() + " - " + String.format("%.1f", item.getPret()) + " RON");
+                } catch (Exception ex) {
+                    // defensive: if anything unexpected happens, show a fallback and avoid crashing the UI thread
+                    setText(item == null ? null : item.getNume());
+                }
+            }
+
             @Override
             protected void updateItem(Produs item, boolean empty) {
+                // remove listeners from previous observed item
+                if (observed != null) {
+                    observed.pretProperty().removeListener(priceListener);
+                    observed.numeProperty().removeListener(nameListener);
+                }
+
                 super.updateItem(item, empty);
+
+                observed = item;
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(item.toString());
+                    // listen to changes so cell updates live
+                    item.pretProperty().addListener(priceListener);
+                    item.numeProperty().addListener(nameListener);
+                    updateText();
                 }
             }
         });
@@ -85,56 +120,162 @@ public class GuiApp extends Application {
         VBox.setVgrow(details, Priority.ALWAYS);
         root.setCenter(centerBox);
 
-        // Commit helper: commit current txtPret value into currentSelected
-        Runnable commitRunnable = () -> commitPrice(listView, txtPret, lblStatus);
+        // Bind UI to selected item properties
+        ReadOnlyObjectProperty<Produs> selected = listView.getSelectionModel().selectedItemProperty();
 
-        // Set listeners on txtPret once (avoid adding multiple listeners on selection change)
-        txtPret.setOnKeyPressed(ev -> {
-            if (ev.getCode() == KeyCode.ENTER) {
-                commitRunnable.run();
+        // Bind name label to selected.numeProperty (or empty when null)
+        lblNume.textProperty().bind(Bindings.createStringBinding(() -> {
+            Produs p = selected.get();
+            return p == null ? "" : p.getNume();
+        }, selected));
+
+        // Vegetarian checkbox reflect property
+        selected.addListener((obs, oldP, newP) -> {
+            if (oldP != null) {
+                chkVeg.selectedProperty().unbind();
             }
-        });
-        txtPret.focusedProperty().addListener((o, was, isNow) -> {
-            if (!isNow) commitRunnable.run();
-        });
 
-        // Selection handling
-        listView.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            // Before changing selection, commit any pending edit for the previously selected product
-            commitRunnable.run();
-            lblStatus.setText("");
-            if (sel == null) {
-                currentSelected = null;
-                lblNume.setText("");
+            // Unbind any previous formatter/binding of the price field
+            if (boundPretProd != null) {
+                if (currentFormatter != null) {
+                    // Commit any pending edit to the model before removing formatter
+                    try {
+                        Double pending = currentFormatter.getValue();
+                        if (pending == null) {
+                            String txt = txtPret.getText();
+                            if (txt != null && !txt.isBlank()) {
+                                // tolerant parsing: trim, remove trailing dot/comma if present
+                                String s = txt.trim();
+                                if (s.endsWith(".") || s.endsWith(",")) s = s.substring(0, s.length() - 1);
+                                s = s.replace(',', '.');
+                                try {
+                                    pending = Double.parseDouble(s);
+                                } catch (Exception ex) {
+                                    pending = null;
+                                }
+                            }
+                        }
+
+                        if (pending != null) {
+                            if (pending < 0) {
+                                lblStatus.setText("Pretul trebuie sa fie >= 0");
+                                // revert UI to previous value
+                                txtPret.setText(String.format("%.1f", boundPretProd.getPret()));
+                            } else {
+                                // apply
+                                boundPretProd.pretProperty().set(pending);
+                                lblStatus.setText("");
+                                // ensure list shows updated value immediately
+                                listView.refresh();
+                            }
+                        } else {
+                            // no valid pending value -> revert the text field to the product's current price
+                            txtPret.setText(String.format("%.1f", boundPretProd.getPret()));
+                        }
+                    } catch (Exception ex) {
+                        // ignore commit errors but don't lose app stability
+                        lblStatus.setText("Eroare la aplicarea pretului");
+                        txtPret.setText(String.format("%.1f", boundPretProd.getPret()));
+                    }
+
+                    // remove listener and formatter
+                    if (currentFormatterListener != null) currentFormatter.valueProperty().removeListener(currentFormatterListener);
+                    txtPret.setText("");
+                    txtPret.setTextFormatter(null);
+                    currentFormatter = null;
+                    currentFormatterListener = null;
+                }
+                boundPretProd = null;
+            }
+
+            if (newP == null) {
+                chkVeg.setSelected(false);
+                txtPret.setDisable(true);
                 lblTip.setText("");
                 lblExtra.setText("");
-                chkVeg.setSelected(false);
                 txtPret.setText("");
-                txtPret.setDisable(true);
-                return;
-            }
-            // Set currentSelected to the newly selected product
-            currentSelected = sel;
-            lblNume.setText(sel.getNume());
-            chkVeg.setSelected(sel.isVegetarian());
-            txtPret.setDisable(false);
-
-            if (sel instanceof Pizza p) {
-                lblTip.setText("Pizza");
-                lblExtra.setText("Blat: " + p.getBlat() + ", Sos: " + p.getSos());
-            } else if (sel instanceof Mancare m) {
-                lblTip.setText("Mancare");
-                lblExtra.setText("Gramaj: " + m.getGramaj() + " g");
-            } else if (sel instanceof Bautura b) {
-                lblTip.setText("Bautura");
-                lblExtra.setText("Volum: " + b.getVolum() + " ml");
+                lblStatus.setText("");
             } else {
-                lblTip.setText(sel.getClass().getSimpleName());
-                lblExtra.setText("");
-            }
+                chkVeg.selectedProperty().bind(newP.vegetarianProperty());
+                txtPret.setDisable(false);
 
-            // Initialize text with the selected product's price
-            txtPret.setText(String.format("%.1f", sel.getPret()));
+                // set tip/extra labels based on runtime type
+                if (newP instanceof Pizza p) {
+                    lblTip.setText("Pizza");
+                    lblExtra.setText("Blat: " + p.getBlat() + ", Sos: " + p.getSos());
+                } else if (newP instanceof Mancare m) {
+                    lblTip.setText("Mancare");
+                    lblExtra.setText("Gramaj: " + m.getGramaj() + " g");
+                } else if (newP instanceof Bautura b) {
+                    lblTip.setText("Bautura");
+                    lblExtra.setText("Volum: " + b.getVolum() + " ml");
+                } else {
+                    lblTip.setText(newP.getClass().getSimpleName());
+                    lblExtra.setText("");
+                }
+
+                // Create a TextFormatter that validates numeric input and rejects negative numbers
+                TextFormatter<Double> formatter = new TextFormatter<>(new DoubleStringConverter(), newP.getPret(), change -> {
+                    String newText = change.getControlNewText();
+                    if (newText == null || newText.isEmpty()) {
+                        // allow empty (user might be typing)
+                        return change;
+                    }
+                    // Allow a single '-' while typing (so user can type negative sign but we won't accept negative value on commit)
+                    if (newText.equals("-")) {
+                        return change;
+                    }
+                    try {
+                        double v = Double.parseDouble(newText.replace(',', '.'));
+                        // reject negative numbers
+                        if (v < 0) {
+                            lblStatus.setText("Pretul trebuie sa fie >= 0");
+                            return null;
+                        }
+                        lblStatus.setText("");
+                        return change;
+                    } catch (NumberFormatException ex) {
+                        // reject invalid numeric input
+                        return null;
+                    }
+                });
+
+                txtPret.setTextFormatter(formatter);
+
+                // force the control to show the product price immediately
+                formatter.setValue(newP.getPret());
+                txtPret.setText(String.format("%.1f", newP.getPret()));
+
+                // Instead of bindBidirectional, attach a safe listener: when formatter.valueProperty() yields a non-null valid number,
+                // update the product's pretProperty(). This avoids null-related exceptions and gives us control.
+                ChangeListener<Double> valListener = (ob, oldV, newV) -> {
+                    try {
+                        if (newV == null) {
+                            // don't update model when value is temporarily empty while editing
+                            return;
+                        }
+                        // newV already validated by the filter: ensure non-negative
+                        if (newV < 0) {
+                            // revert to old value in UI
+                            Platform.runLater(() -> formatter.setValue(oldV));
+                            lblStatus.setText("Pretul trebuie sa fie >= 0");
+                        } else {
+                            lblStatus.setText("");
+                            // update model
+                            newP.pretProperty().set(newV);
+                        }
+                    } catch (Exception ex) {
+                        // On unexpected error revert and show status instead of crashing
+                        Platform.runLater(() -> formatter.setValue(oldV));
+                        lblStatus.setText("Eroare la citirea valorii introduse");
+                    }
+                };
+
+                formatter.valueProperty().addListener(valListener);
+                currentFormatter = formatter;
+                currentFormatterListener = valListener;
+                boundPretProd = newP;
+            }
         });
 
         // select first if available
@@ -144,28 +285,6 @@ public class GuiApp extends Application {
         primaryStage.setTitle("Meniu Restaurant - GUI");
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    // Parse and commit the value currently in txtPret into the currently selected product
-    private void commitPrice(ListView<Produs> listView, TextField txtPret, Label lblStatus) {
-        if (currentSelected == null) return;
-        String txt = txtPret.getText().trim();
-        if (txt.isEmpty()) {
-            lblStatus.setText("Pret invalid");
-            return;
-        }
-        try {
-            double val = Double.parseDouble(txt.replace(',', '.'));
-            if (val < 0) {
-                lblStatus.setText("Pretul trebuie sa fie >= 0");
-                return;
-            }
-            currentSelected.setPret(val);
-            listView.refresh();
-            lblStatus.setText("Pret actualizat");
-        } catch (NumberFormatException ex) {
-            lblStatus.setText("Pret invalid: introduceti o valoare numerica");
-        }
     }
 
     private void buildSampleData() {
