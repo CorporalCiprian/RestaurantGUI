@@ -1,5 +1,8 @@
 package org.example;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.text.DecimalFormat;
 import java.util.Objects;
 
@@ -10,6 +13,12 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tip")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Mancare.class, name = "MANCARE"),
+        @JsonSubTypes.Type(value = Bautura.class, name = "BAUTURA"),
+        @JsonSubTypes.Type(value = Pizza.class, name = "PIZZA")
+})
 public sealed abstract class Produs permits Mancare, Bautura, Pizza {
     // Use JavaFX properties so the GUI can bind directly to model values
     private final StringProperty nume;

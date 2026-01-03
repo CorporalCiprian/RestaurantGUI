@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -12,9 +13,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
+import org.example.json.LegacyProdusListReader;
+import org.example.json.ProdusJsonDto;
+import org.example.json.ProdusJsonMapper;
+import org.example.persistence.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +34,9 @@ public class GuiApp extends Application {
     // listener attached to the current formatter's valueProperty
     private ChangeListener<Double> currentFormatterListener = null;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final ProdusRepository produsRepository = new ProdusRepository();
+
     public static void main(String[] args) {
         // Launch JavaFX
         launch(args);
@@ -34,10 +44,31 @@ public class GuiApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        buildSampleData();
+        // DB is the source of truth. If empty, seed it with the sample data.
+        try {
+            new DatabaseSeeder(produsRepository).seedIfEmpty();
+            sampleList.clear();
+            produsRepository.findAll().forEach(e -> sampleList.add(ProdusMapper.toDomain(e)));
+        } catch (Exception ex) {
+            // Fallback if DB isn't available: still allow starting the GUI with local sample data.
+            sampleList.clear();
+            sampleList.addAll(SampleDataFactory.createSampleProducts());
+        }
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
+
+        // --- Menu bar (File: Export JSON / Import JSON / Reload from DB / Save to DB / Exit) ---
+        MenuBar menuBar = new MenuBar();
+        Menu fileMenu = new Menu("File");
+        MenuItem miExport = new MenuItem("Export JSON");
+        MenuItem miImport = new MenuItem("Import JSON");
+        MenuItem miReloadDb = new MenuItem("Reload from DB");
+        MenuItem miSaveDb = new MenuItem("Save to DB");
+        MenuItem miExit = new MenuItem("Exit");
+        fileMenu.getItems().addAll(miExport, miImport, new SeparatorMenuItem(), miReloadDb, miSaveDb, new SeparatorMenuItem(), miExit);
+        menuBar.getMenus().add(fileMenu);
+        root.setTop(menuBar);
 
         ListView<Produs> listView = new ListView<>();
         javafx.collections.ObservableList<Produs> items = javafx.collections.FXCollections.observableArrayList(sampleList);
@@ -151,7 +182,7 @@ public class GuiApp extends Application {
                                 try {
                                     pending = Double.parseDouble(s);
                                 } catch (Exception ex) {
-                                    pending = null;
+                                    // keep pending as null
                                 }
                             }
                         }
@@ -246,26 +277,18 @@ public class GuiApp extends Application {
                 formatter.setValue(newP.getPret());
                 txtPret.setText(String.format("%.1f", newP.getPret()));
 
-                // Instead of bindBidirectional, attach a safe listener: when formatter.valueProperty() yields a non-null valid number,
-                // update the product's pretProperty(). This avoids null-related exceptions and gives us control.
+                // Instead of bindBidirectional, attach a safe listener
                 ChangeListener<Double> valListener = (ob, oldV, newV) -> {
                     try {
-                        if (newV == null) {
-                            // don't update model when value is temporarily empty while editing
-                            return;
-                        }
-                        // newV already validated by the filter: ensure non-negative
+                        if (newV == null) return;
                         if (newV < 0) {
-                            // revert to old value in UI
                             Platform.runLater(() -> formatter.setValue(oldV));
                             lblStatus.setText("Pretul trebuie sa fie >= 0");
                         } else {
                             lblStatus.setText("");
-                            // update model
                             newP.pretProperty().set(newV);
                         }
                     } catch (Exception ex) {
-                        // On unexpected error revert and show status instead of crashing
                         Platform.runLater(() -> formatter.setValue(oldV));
                         lblStatus.setText("Eroare la citirea valorii introduse");
                     }
@@ -278,6 +301,81 @@ public class GuiApp extends Application {
             }
         });
 
+        // --- Menu actions ---
+        miExit.setOnAction(e -> {
+            primaryStage.close();
+            Platform.exit();
+        });
+
+        miReloadDb.setOnAction(e -> {
+            try {
+                List<Produs> loaded = new ArrayList<>();
+                produsRepository.findAll().forEach(pe -> loaded.add(ProdusMapper.toDomain(pe)));
+                items.setAll(loaded);
+                if (!items.isEmpty()) listView.getSelectionModel().select(0);
+                showInfo("Reload from DB", "Meniul a fost incarcat din baza de date.");
+            } catch (Exception ex) {
+                showError("Reload from DB", "Nu am putut incarca din DB: " + ex.getMessage());
+            }
+        });
+
+        miSaveDb.setOnAction(e -> {
+            try {
+                List<ProdusEntity> ents = items.stream().map(ProdusMapper::toEntity).toList();
+                produsRepository.replaceAll(ents);
+                showInfo("Save to DB", "Meniul curent a fost salvat in baza de date.");
+            } catch (Exception ex) {
+                showError("Save to DB", "Nu am putut salva in DB: " + ex.getMessage());
+            }
+        });
+
+        miExport.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Export JSON");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+            chooser.setInitialFileName("meniu-export.json");
+            File f = chooser.showSaveDialog(primaryStage);
+            if (f == null) return;
+            try {
+                // Export should reflect what's currently in DB (source of truth)
+                List<Produs> fromDb = new ArrayList<>();
+                produsRepository.findAll().forEach(pe -> fromDb.add(ProdusMapper.toDomain(pe)));
+
+                List<ProdusJsonDto> dtos = fromDb.stream().map(ProdusJsonMapper::toDto).toList();
+                mapper.writerWithDefaultPrettyPrinter().writeValue(f, dtos);
+                showInfo("Export JSON", "Export reusit: " + f.getAbsolutePath());
+            } catch (Exception ex) {
+                showError("Export JSON", "Eroare la export: " + ex.getMessage());
+            }
+        });
+
+        miImport.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Import JSON");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+            File f = chooser.showOpenDialog(primaryStage);
+            if (f == null) return;
+
+            try {
+                // Backward compatible: supports new format (with "tip") and old files (without it)
+                List<ProdusJsonDto> importedDtos = LegacyProdusListReader.readDtos(mapper, f);
+
+                List<Produs> imported = importedDtos.stream().map(ProdusJsonMapper::toDomain).toList();
+
+                // Import requirement: add products in DB (upsert), then refresh UI
+                List<ProdusEntity> ents = imported.stream().map(ProdusMapper::toEntity).toList();
+                produsRepository.saveAll(ents);
+
+                List<Produs> loaded = new ArrayList<>();
+                produsRepository.findAll().forEach(pe -> loaded.add(ProdusMapper.toDomain(pe)));
+                items.setAll(loaded);
+                if (!items.isEmpty()) listView.getSelectionModel().select(0);
+                showInfo("Import JSON", "Import reusit: " + imported.size() + " produse (adaugate in DB). ");
+            } catch (Exception ex) {
+                showError("Import JSON", "Eroare la import (fisier invalid sau DB indisponibil): " + ex.getMessage());
+            }
+        });
+
         // select first if available
         if (!items.isEmpty()) listView.getSelectionModel().select(0);
 
@@ -287,37 +385,28 @@ public class GuiApp extends Application {
         primaryStage.show();
     }
 
-    private void buildSampleData() {
-        Pizza pizza = new Pizza.Builder(Pizza.TipBlat.CLASIC, Pizza.TipSos.ROSU)
-                .nume("Pizza Margherita")
-                .vegetarian(true)
-                .baza(45.0)
-                .build();
-        Mancare paste = new Mancare("Paste Carbonara", 52.5, 400, false);
-        Mancare supaVeg = new Mancare("Supa Veg", 24.0, 300, true);
-        Bautura limonada = new Bautura("Limonada", 15.0, 400, true);
-        Bautura apa = new Bautura("Apa Plata", 8.0, 500, true);
-        Bautura lichiorOua = new Bautura("Lichior de Oua", 22.0, 50, false);
+    @Override
+    public void stop() {
+        // ensure JPA resources are released
+        try {
+            JpaUtil.shutdown();
+        } catch (Exception ignored) {
+        }
+    }
 
-        Mancare bruschette = new Mancare("Bruschette cu rosii", 18.0, 120, true);
-        Mancare salataCaprese = new Mancare("Salata Caprese", 22.0, 150, true);
-        Mancare chiftelute = new Mancare("Chiftelute de pui", 20.0, 100, false);
+    private static void showInfo(String title, String message) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(message);
+        a.showAndWait();
+    }
 
-        Mancare tiramisu = new Mancare("Tiramisu", 25.0, 120, true);
-        Mancare papanasi = new Mancare("Papanasi cu smantana si gem", 28.0, 200, true);
-        Mancare inghetata = new Mancare("Inghetata asortata", 15.0, 100, true);
-
-        sampleList.add(pizza);
-        sampleList.add(paste);
-        sampleList.add(supaVeg);
-        sampleList.add(limonada);
-        sampleList.add(apa);
-        sampleList.add(lichiorOua);
-        sampleList.add(bruschette);
-        sampleList.add(salataCaprese);
-        sampleList.add(chiftelute);
-        sampleList.add(tiramisu);
-        sampleList.add(papanasi);
-        sampleList.add(inghetata);
+    private static void showError(String title, String message) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(message);
+        a.showAndWait();
     }
 }

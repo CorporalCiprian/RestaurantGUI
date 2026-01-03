@@ -3,6 +3,8 @@ package org.example;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.json.ProdusJsonDto;
+import org.example.json.ProdusJsonMapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -171,7 +173,8 @@ public class Main {
     private static void exportMeniuInJson(List<Produs> meniuLista) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File("meniu-export.json"), meniuLista);
+            List<ProdusJsonDto> dtos = meniuLista.stream().map(ProdusJsonMapper::toDto).toList();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File("meniu-export.json"), dtos);
             System.out.println("Meniul a fost exportat cu succes in fisierul meniu-export.json");
         } catch (IOException e) {
             System.err.println("Eroare la exportul meniului in JSON: " + e.getMessage());
