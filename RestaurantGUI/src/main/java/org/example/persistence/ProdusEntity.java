@@ -38,6 +38,14 @@ public abstract class ProdusEntity {
         return id;
     }
 
+    /**
+     * Intended for internal use (mapper/upsert). When ID is set, Hibernate will treat the entity as existing
+     * on merge() and will keep row identity.
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getNume() {
         return nume;
     }
@@ -62,4 +70,3 @@ public abstract class ProdusEntity {
         this.vegetarian = vegetarian;
     }
 }
-

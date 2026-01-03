@@ -32,6 +32,18 @@ public final class ProdusMapper {
         throw new IllegalArgumentException("Tip produs necunoscut: " + produs.getClass());
     }
 
+    /**
+     * Maps a domain object to an entity, reusing the ID from an existing DB entity if provided.
+     * This enables save via merge() to perform UPDATE and keep stable IDs.
+     */
+    public static ProdusEntity toEntityWithIdIfPresent(Produs produs, ProdusEntity existing) {
+        ProdusEntity created = toEntity(produs);
+        if (created != null && existing != null && existing.getId() != null) {
+            created.setId(existing.getId());
+        }
+        return created;
+    }
+
     public static Produs toDomain(ProdusEntity e) {
         if (e == null) return null;
 
@@ -66,4 +78,3 @@ public final class ProdusMapper {
         return new Mancare(e.getNume(), e.getPret(), 1, e.isVegetarian());
     }
 }
-

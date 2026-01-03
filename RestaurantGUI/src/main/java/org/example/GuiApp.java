@@ -233,7 +233,10 @@ public class GuiApp extends Application {
                 // set tip/extra labels based on runtime type
                 if (newP instanceof Pizza p) {
                     lblTip.setText("Pizza");
-                    lblExtra.setText("Blat: " + p.getBlat() + ", Sos: " + p.getSos());
+                    String toppingsText = (p.getToppings() == null || p.getToppings().isEmpty())
+                            ? "fara topping"
+                            : p.getToppings().stream().map(Enum::name).reduce((a, b) -> a + ", " + b).orElse("fara topping");
+                    lblExtra.setText("Blat: " + p.getBlat() + ", Sos: " + p.getSos() + ", Topping: " + toppingsText);
                 } else if (newP instanceof Mancare m) {
                     lblTip.setText("Mancare");
                     lblExtra.setText("Gramaj: " + m.getGramaj() + " g");
@@ -321,9 +324,15 @@ public class GuiApp extends Application {
 
         miSaveDb.setOnAction(e -> {
             try {
-                List<ProdusEntity> ents = items.stream().map(ProdusMapper::toEntity).toList();
-                produsRepository.replaceAll(ents);
-                showInfo("Save to DB", "Meniul curent a fost salvat in baza de date.");
+                // Keep stable IDs: update existing rows (merge) instead of delete+insert.
+                List<ProdusEntity> ents = items.stream().map(p -> {
+                    String tip = (p instanceof Pizza) ? "PIZZA" : (p instanceof Mancare) ? "MANCARE" : (p instanceof Bautura) ? "BAUTURA" : "";
+                    ProdusEntity existing = tip.isBlank() ? null : produsRepository.findByTypeAndName(tip, p.getNume()).orElse(null);
+                    return ProdusMapper.toEntityWithIdIfPresent(p, existing);
+                }).toList();
+
+                produsRepository.saveAll(ents);
+                showInfo("Save to DB", "Modificarile au fost salvate in baza de date (ID-urile au ramas stabile).");
             } catch (Exception ex) {
                 showError("Save to DB", "Nu am putut salva in DB: " + ex.getMessage());
             }

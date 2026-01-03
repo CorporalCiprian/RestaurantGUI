@@ -17,6 +17,8 @@ public final class SampleDataFactory {
                 .nume("Pizza Margherita")
                 .vegetarian(true)
                 .baza(45.0)
+                .adaugaTopping(Pizza.Topping.MOZZARELLA)
+                .adaugaTopping(Pizza.Topping.CIUPERCI)
                 .build();
         Mancare paste = new Mancare("Paste Carbonara", 52.5, 400, false);
         Mancare supaVeg = new Mancare("Supa Veg", 24.0, 300, true);
@@ -48,4 +50,3 @@ public final class SampleDataFactory {
         return sampleList;
     }
 }
-

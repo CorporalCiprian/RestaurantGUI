@@ -99,6 +99,11 @@ public class ProdusRepository {
         EntityManager em = JpaUtil.em();
         try {
             em.getTransaction().begin();
+
+            // Important: PizzaEntity has an @ElementCollection stored in a separate table (pizza_toppings)
+            // with a FK to produse(id). We must delete child rows first to avoid FK violations.
+            em.createNativeQuery("delete from pizza_toppings").executeUpdate();
+
             em.createQuery("delete from ProdusEntity").executeUpdate();
             if (all != null) {
                 for (ProdusEntity e : all) {
