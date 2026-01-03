@@ -28,3 +28,4 @@ module org.example.restaurant {
     // Jackson needs reflective access to DTOs
     opens org.example.json to com.fasterxml.jackson.databind;
 }
+

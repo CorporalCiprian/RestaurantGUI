@@ -371,15 +371,21 @@ public class GuiApp extends Application {
 
                 List<Produs> imported = importedDtos.stream().map(ProdusJsonMapper::toDomain).toList();
 
-                // Import requirement: add products in DB (upsert), then refresh UI
-                List<ProdusEntity> ents = imported.stream().map(ProdusMapper::toEntity).toList();
+                // Import requirement: add products in DB (upsert without duplicates), then refresh UI.
+                // Duplicate key = (discriminator tip + nume). If found, reuse ID so merge() performs UPDATE.
+                List<ProdusEntity> ents = imported.stream().map(p -> {
+                    String tip = (p instanceof Pizza) ? "PIZZA" : (p instanceof Mancare) ? "MANCARE" : (p instanceof Bautura) ? "BAUTURA" : "";
+                    ProdusEntity existing = tip.isBlank() ? null : produsRepository.findByTypeAndName(tip, p.getNume()).orElse(null);
+                    return ProdusMapper.toEntityWithIdIfPresent(p, existing);
+                }).toList();
+
                 produsRepository.saveAll(ents);
 
                 List<Produs> loaded = new ArrayList<>();
                 produsRepository.findAll().forEach(pe -> loaded.add(ProdusMapper.toDomain(pe)));
                 items.setAll(loaded);
                 if (!items.isEmpty()) listView.getSelectionModel().select(0);
-                showInfo("Import JSON", "Import reusit: " + imported.size() + " produse (adaugate in DB). ");
+                showInfo("Import JSON", "Import reusit: " + imported.size() + " produse (upsert in DB, fara duplicate pe tip+nume).");
             } catch (Exception ex) {
                 showError("Import JSON", "Eroare la import (fisier invalid sau DB indisponibil): " + ex.getMessage());
             }
