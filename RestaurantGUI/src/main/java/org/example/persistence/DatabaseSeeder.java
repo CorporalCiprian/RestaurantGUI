@@ -14,11 +14,15 @@ public class DatabaseSeeder {
     }
 
     public void seedIfEmpty() {
-        if (repo.count() > 0) return;
-        List<Produs> sample = SampleDataFactory.createSampleProducts();
-        for (Produs p : sample) {
-            repo.save(ProdusMapper.toEntity(p));
+        // If DB is empty, insert sample data.
+        if (repo.count() == 0) {
+            List<Produs> sample = SampleDataFactory.createSampleProducts();
+            for (Produs p : sample) {
+                repo.save(ProdusMapper.toEntity(p));
+            }
         }
+
+        // Backfill new columns / fix legacy data.
+        repo.backfillDessertFlag();
     }
 }
-

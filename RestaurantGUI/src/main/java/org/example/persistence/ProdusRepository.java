@@ -74,6 +74,23 @@ public class ProdusRepository {
         }
     }
 
+    public void delete(ProdusEntity produsEntity) {
+        EntityManager em = JpaUtil.em();
+        try {
+            em.getTransaction().begin();
+            if (!em.contains(produsEntity)) {
+                produsEntity = em.merge(produsEntity);
+            }
+            em.remove(produsEntity);
+            em.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
     /**
      * Upsert all provided entities (merge). This matches the "Import: add products in DB" requirement.
      */
@@ -110,6 +127,80 @@ public class ProdusRepository {
                     em.persist(e);
                 }
             }
+            em.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Backfills the new dessert flag for legacy DBs:
+     * - sets NULL -> false for all MANCARE rows
+     * - marks common dessert names as true
+     */
+    public void backfillDessertFlag() {
+        EntityManager em = JpaUtil.em();
+        try {
+            em.getTransaction().begin();
+
+            // 1) Ensure NULL becomes false (otherwise queries may behave oddly)
+            em.createNativeQuery(
+                            "update produse set is_desert = false where tip = 'MANCARE' and is_desert is null")
+                    .executeUpdate();
+
+            // 2) Mark sample desserts (case-insensitive match)
+            em.createNativeQuery(
+                            "update produse set is_desert = true where tip = 'MANCARE' and lower(nume) in ('tiramisu','inghetata asortata','papanasi cu smantana si gem')")
+                    .executeUpdate();
+
+            em.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            // If schema doesn't have the column yet, ignore (app still can run without dessert filtering).
+            // This may happen on the very first run before hbm2ddl finishes.
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Import-friendly upsert: updates existing products matched by (type + name), inserts missing ones.
+     * Important: preserves row identity (id) so existing order items keep referencing the same product.
+     */
+    public void upsertByTypeAndName(List<ProdusEntity> all) {
+        if (all == null || all.isEmpty()) return;
+
+        EntityManager em = JpaUtil.em();
+        try {
+            em.getTransaction().begin();
+
+            for (ProdusEntity incoming : all) {
+                if (incoming == null) continue;
+
+                // match by discriminator (entity class) + case-insensitive name
+                Long existingId = em.createQuery(
+                                "select p.id from ProdusEntity p where type(p) = :clazz and lower(p.nume) = :nume",
+                                Long.class)
+                        .setParameter("clazz", incoming.getClass())
+                        .setParameter("nume", incoming.getNume() == null ? "" : incoming.getNume().trim().toLowerCase())
+                        .setMaxResults(1)
+                        .getResultList()
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingId != null) {
+                    incoming.setId(existingId);
+                } else {
+                    incoming.setId(null);
+                }
+
+                em.merge(incoming);
+            }
+
             em.getTransaction().commit();
         } catch (RuntimeException ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();

@@ -1,0 +1,49 @@
+[
+  {
+    "tip": "MANCARE",
+    "nume": "Paste Arrabiata",
+    "pret": 32.5,
+    "vegetarian": true,
+    "gramaj": 350
+  },
+  {
+    "tip": "MANCARE",
+    "nume": "Tiramisu",
+    "pret": 22.0,
+    "vegetarian": true,
+    "gramaj": 150
+  },
+  {
+    "tip": "BAUTURA",
+    "nume": "Apa plata",
+    "pret": 8.0,
+    "vegetarian": true,
+    "volum": 500
+  },
+  {
+    "tip": "BAUTURA",
+    "nume": "Limonada",
+    "pret": 15.0,
+    "vegetarian": true,
+    "volum": 400
+  },
+  {
+    "tip": "PIZZA",
+    "nume": "Pizza Margherita",
+    "pret": 50.0,
+    "vegetarian": true,
+    "blat": "CLASIC",
+    "sos": "ROSU",
+    "toppings": ["MOZZARELLA", "MASLINE"]
+  },
+  {
+    "tip": "PIZZA",
+    "nume": "Pizza Pepperoni",
+    "pret": 45.0,
+    "vegetarian": false,
+    "blat": "CLASIC",
+    "sos": "ROSU",
+    "toppings": ["SALAM", "CIUPERCI"]
+  }
+]
+

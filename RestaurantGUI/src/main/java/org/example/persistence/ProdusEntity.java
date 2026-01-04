@@ -70,3 +70,5 @@ public abstract class ProdusEntity {
         this.vegetarian = vegetarian;
     }
 }
+
+

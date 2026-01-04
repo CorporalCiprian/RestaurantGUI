@@ -1,0 +1,35 @@
+[ {
+  "nume" : "Apa plata",
+  "pret" : 8.0,
+  "vegetarian" : true,
+  "volum" : 500
+}, {
+  "nume" : "Limonada",
+  "pret" : 15.0,
+  "vegetarian" : true,
+  "volum" : 400
+}, {
+  "nume" : "Paste Arrabiata",
+  "pret" : 32.5,
+  "vegetarian" : true,
+  "gramaj" : 350
+}, {
+  "nume" : "Pizza Margherita",
+  "pret" : 45.0,
+  "vegetarian" : true,
+  "blat" : "CLASIC",
+  "sos" : "ROSU",
+  "toppings" : [ "MOZZARELLA", "MASLINE" ]
+}, {
+  "nume" : "Pizza Pepperoni",
+  "pret" : 45.0,
+  "vegetarian" : false,
+  "blat" : "CLASIC",
+  "sos" : "ROSU",
+  "toppings" : [ "SALAM", "CIUPERCI" ]
+}, {
+  "nume" : "Tiramisu",
+  "pret" : 22.0,
+  "vegetarian" : true,
+  "gramaj" : 150
+} ]

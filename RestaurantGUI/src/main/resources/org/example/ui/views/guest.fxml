@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.GuestController">
+    <left>
+        <ListView fx:id="menuListView"/>
+    </left>
+    <center>
+        <VBox spacing="10" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Filter by Name:"/>
+            <TextField fx:id="nameFilterField"/>
+            <Label text="Filter by Type:"/>
+            <ComboBox fx:id="typeFilterComboBox"/>
+            <Label text="Price Range:"/>
+            <TextField fx:id="minPriceField" promptText="Min Price"/>
+            <TextField fx:id="maxPriceField" promptText="Max Price"/>
+            <CheckBox fx:id="vegetarianFilterCheckBox" text="Vegetarian"/>
+            <CheckBox fx:id="dessertFilterCheckBox" text="Dessert"/>
+        </VBox>
+    </center>
+    <right>
+        <VBox spacing="10" alignment="TOP_LEFT" fx:id="detailsPane">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Details"/>
+            <Label fx:id="nameLabel"/>
+            <Label fx:id="priceLabel"/>
+            <Label fx:id="detailsLabel"/>
+        </VBox>
+    </right>
+</BorderPane>

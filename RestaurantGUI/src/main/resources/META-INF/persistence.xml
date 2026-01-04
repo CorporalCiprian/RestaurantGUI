@@ -6,10 +6,21 @@
 
     <persistence-unit name="restaurantPU" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- Products -->
         <class>org.example.persistence.ProdusEntity</class>
         <class>org.example.persistence.MancareEntity</class>
         <class>org.example.persistence.BauturaEntity</class>
         <class>org.example.persistence.PizzaEntity</class>
+
+        <!-- Core restaurant entities -->
+        <class>org.example.model.User</class>
+        <class>org.example.model.Masa</class>
+        <class>org.example.model.Comanda</class>
+        <class>org.example.model.ComandaItem</class>
+
+        <!-- Settings -->
+        <class>org.example.model.OfferSettings</class>
 
         <properties>
             <!-- PostgreSQL connection (adjust in src/main/resources/config.json or env if you prefer) -->

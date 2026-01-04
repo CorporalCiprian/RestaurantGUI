@@ -23,7 +23,8 @@ public final class ProdusMapper {
             );
         }
         if (produs instanceof Mancare m) {
-            return new MancareEntity(m.getNume(), m.getPret(), m.isVegetarian(), m.getGramaj());
+            // Domain model doesn't carry dessert flag; default = false.
+            return new MancareEntity(m.getNume(), m.getPret(), m.isVegetarian(), m.getGramaj(), false);
         }
         if (produs instanceof Bautura b) {
             return new BauturaEntity(b.getNume(), b.getPret(), b.isVegetarian(), b.getVolum());
@@ -67,6 +68,7 @@ public final class ProdusMapper {
         }
         if (e instanceof MancareEntity m) {
             int gramaj = m.getGramaj() == null ? 1 : m.getGramaj();
+            // Domain model doesn't have dessert; keep vegetarian as-is.
             return new Mancare(e.getNume(), e.getPret(), gramaj, e.isVegetarian());
         }
         if (e instanceof BauturaEntity b) {
