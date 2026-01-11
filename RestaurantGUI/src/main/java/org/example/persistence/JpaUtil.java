@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-/** Simple helper for creating/closing the EntityManagerFactory. */
 public final class JpaUtil {
     private static volatile EntityManagerFactory emf;
 
@@ -36,4 +35,3 @@ public final class JpaUtil {
         emf = null;
     }
 }
-

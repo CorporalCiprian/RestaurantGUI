@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Reads either the new DTO format (with "tip") or legacy files (without "tip").
- */
 public final class LegacyProdusListReader {
     private LegacyProdusListReader() {
     }
@@ -25,7 +22,6 @@ public final class LegacyProdusListReader {
         for (JsonNode n : root) {
             if (n == null || n.isNull()) continue;
 
-            // New format: contains "tip"
             if (n.hasNonNull("tip")) {
                 String tip = n.get("tip").asText("");
                 ProdusJsonDto dto = switch (tip.toUpperCase()) {
@@ -38,7 +34,6 @@ public final class LegacyProdusListReader {
                 continue;
             }
 
-            // Legacy: infer
             String nume = text(n, "nume");
             double pret = number(n, "pret", 0.0);
             boolean vegetarian = bool(n, "vegetarian", false);

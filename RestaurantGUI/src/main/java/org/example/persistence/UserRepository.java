@@ -33,7 +33,6 @@ public class UserRepository {
         entityManager.getTransaction().commit();
     }
 
-    /** Upsert (insert or update) using merge(). */
     public User saveOrUpdate(User user) {
         entityManager.getTransaction().begin();
         User managed = entityManager.merge(user);
@@ -47,7 +46,6 @@ public class UserRepository {
 
     public void delete(User user) {
         entityManager.getTransaction().begin();
-        // Re-attach the entity if it's detached
         if (!entityManager.contains(user)) {
             user = entityManager.merge(user);
         }

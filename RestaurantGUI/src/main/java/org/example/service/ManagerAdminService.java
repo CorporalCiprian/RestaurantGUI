@@ -16,10 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Manager/Admin use-cases: staff management, menu management, offers toggles, global history.
- * Extracted from ManagerController to keep controllers UI-only.
- */
 public class ManagerAdminService {
 
     private final UserRepository userRepository;
@@ -124,4 +120,3 @@ public class ManagerAdminService {
         offerConfig.saveToDb();
     }
 }
-

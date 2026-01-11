@@ -15,7 +15,7 @@
   "gramaj" : 350
 }, {
   "nume" : "Pizza Margherita",
-  "pret" : 45.0,
+  "pret" : 50.0,
   "vegetarian" : true,
   "blat" : "CLASIC",
   "sos" : "ROSU",

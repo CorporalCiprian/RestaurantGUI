@@ -4,7 +4,6 @@ import org.example.*;
 
 import java.util.LinkedHashSet;
 
-/** Maps between JavaFX domain model (Produs) and JPA entities. */
 public final class ProdusMapper {
     private ProdusMapper() {
     }
@@ -23,7 +22,6 @@ public final class ProdusMapper {
             );
         }
         if (produs instanceof Mancare m) {
-            // Domain model doesn't carry dessert flag; default = false.
             return new MancareEntity(m.getNume(), m.getPret(), m.isVegetarian(), m.getGramaj(), false);
         }
         if (produs instanceof Bautura b) {
@@ -33,10 +31,6 @@ public final class ProdusMapper {
         throw new IllegalArgumentException("Tip produs necunoscut: " + produs.getClass());
     }
 
-    /**
-     * Maps a domain object to an entity, reusing the ID from an existing DB entity if provided.
-     * This enables save via merge() to perform UPDATE and keep stable IDs.
-     */
     public static ProdusEntity toEntityWithIdIfPresent(Produs produs, ProdusEntity existing) {
         ProdusEntity created = toEntity(produs);
         if (created != null && existing != null && existing.getId() != null) {
@@ -57,8 +51,6 @@ public final class ProdusMapper {
                     .vegetarian(e.isVegetarian())
                     .baza(e.getPret());
 
-            // Note: baza in Builder recomputes price with toppings; here we need exact stored price.
-            // We'll build with toppings, then override the price to the stored value.
             if (p.getToppings() != null) {
                 for (Pizza.Topping t : p.getToppings()) builder.adaugaTopping(t);
             }
@@ -68,7 +60,6 @@ public final class ProdusMapper {
         }
         if (e instanceof MancareEntity m) {
             int gramaj = m.getGramaj() == null ? 1 : m.getGramaj();
-            // Domain model doesn't have dessert; keep vegetarian as-is.
             return new Mancare(e.getNume(), e.getPret(), gramaj, e.isVegetarian());
         }
         if (e instanceof BauturaEntity b) {
@@ -76,7 +67,6 @@ public final class ProdusMapper {
             return new Bautura(e.getNume(), e.getPret(), volum, e.isVegetarian());
         }
 
-        // Fallback: treat as generic food
         return new Mancare(e.getNume(), e.getPret(), 1, e.isVegetarian());
     }
 }

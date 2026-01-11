@@ -10,10 +10,6 @@ import org.example.persistence.MasaRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Staff use-cases: manage tables, place orders, and load personal history.
- * Extracted from StaffController to keep controllers UI-only.
- */
 public class StaffOrderService {
 
     private final MasaRepository masaRepository;
@@ -21,7 +17,7 @@ public class StaffOrderService {
     private final OfertaService ofertaService;
 
     public StaffOrderService() {
-        this(new MasaRepository(), new ComandaRepository(), new OfertaService(OfferConfig.getInstance()));
+        this(new MasaRepository(), new ComandaRepository(), new OfertaService(OfferConfig.getInstance(), new MenuQueryService()));
     }
 
     public StaffOrderService(
@@ -55,23 +51,19 @@ public class StaffOrderService {
         return ofertaService.calculateReceipt(items);
     }
 
-    /** Places an order and persists it. Returns the computed receipt. */
     public OfertaService.Receipt placeOrder(Masa table, User staffUser, List<ComandaItem> cartLinesDomain) {
         if (table == null) throw new IllegalArgumentException("table");
         if (staffUser == null) throw new IllegalArgumentException("staffUser");
         if (cartLinesDomain == null || cartLinesDomain.isEmpty()) throw new IllegalArgumentException("cartLinesDomain");
 
-        // Calculate receipt from current cart lines (domain products).
         OfertaService.Receipt receipt = ofertaService.calculateReceipt(cartLinesDomain);
 
         Comanda comanda = new Comanda();
         comanda.setMasa(table);
         comanda.setOspatar(staffUser);
 
-        // Persist snapshot items (no FK to menu products).
         for (ComandaItem line : cartLinesDomain) {
             if (line == null) continue;
-            // Ensure snapshot fields are present
             if ((line.getProductName() == null || line.getProductName().isBlank()) && line.getProdusDomain() != null) {
                 line.setProductName(line.getProdusDomain().getNume());
             }

@@ -13,7 +13,6 @@ import org.example.persistence.ProdusEntity;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 
-/** Simple dialog for creating/editing a product entity. */
 public final class ProductDialog {
 
     private ProductDialog() {
@@ -56,7 +55,6 @@ public final class ProductDialog {
 
         CheckBox dessertBox = new CheckBox("Dessert");
 
-        // Type-specific
         TextField gramajField = new TextField();
         gramajField.setPrefColumnCount(12);
         gramajField.setPromptText("Ex: 250");
@@ -71,11 +69,10 @@ public final class ProductDialog {
         ComboBox<Pizza.TipSos> sosBox = new ComboBox<>(FXCollections.observableArrayList(Pizza.TipSos.values()));
         sosBox.setPrefWidth(340);
 
-        TextField toppingsField = new TextField(); // comma separated enum names
+        TextField toppingsField = new TextField();
         toppingsField.setPrefColumnCount(28);
         toppingsField.setPromptText("Ex: CIUPERCI,SALAM,EXTRA_BRANZA");
 
-        // Determine initial type
         if (existing instanceof PizzaEntity) typeBox.setValue(ProductType.PIZZA);
         else if (existing instanceof MancareEntity) typeBox.setValue(ProductType.MANCARE);
         else if (existing instanceof BauturaEntity) typeBox.setValue(ProductType.BAUTURA);
@@ -109,7 +106,6 @@ public final class ProductDialog {
         grid.setVgap(12);
         grid.setPadding(new Insets(14));
 
-        // Let the second column grow, so controls expand and stay visible.
         javafx.scene.layout.ColumnConstraints c0 = new javafx.scene.layout.ColumnConstraints();
         c0.setMinWidth(110);
         javafx.scene.layout.ColumnConstraints c1 = new javafx.scene.layout.ColumnConstraints();
@@ -152,9 +148,6 @@ public final class ProductDialog {
         grid.add(toppingsLabel, 0, r);
         grid.add(toppingsField, 1, r++);
 
-        dialog.getDialogPane().setContent(grid);
-
-        // Ensure content isn't clipped; allow scrolling on small screens.
         ScrollPane sp = new ScrollPane(grid);
         sp.setFitToWidth(true);
         sp.setPrefViewportHeight(420);
@@ -178,12 +171,10 @@ public final class ProductDialog {
             dessertBox.setManaged(isMancare);
             if (!isMancare) dessertBox.setSelected(false);
 
-            // lighter UX: clear irrelevant fields when switching type
             if (!isMancare) gramajField.clear();
             if (!isBautura) volumField.clear();
             if (!isPizza) toppingsField.clear();
 
-            // allow OK only if base fields valid
             okButton.setDisable(nameField.getText() == null || nameField.getText().trim().isEmpty()
                     || priceField.getText() == null || priceField.getText().trim().isEmpty());
         };
@@ -192,7 +183,6 @@ public final class ProductDialog {
         nameField.textProperty().addListener((obs, old, val) -> refreshVisibility.run());
         priceField.textProperty().addListener((obs, old, val) -> refreshVisibility.run());
 
-        // initial state
         refreshVisibility.run();
 
         dialog.setResultConverter(btn -> {
@@ -234,7 +224,6 @@ public final class ProductDialog {
                         try {
                             tops.add(Pizza.Topping.valueOf(token.toUpperCase()));
                         } catch (Exception ignored) {
-                            // ignore unknown
                         }
                     }
                 }
@@ -258,7 +247,6 @@ public final class ProductDialog {
                 result = new MancareEntity(name, price, veg, gramaj, isDessert);
             }
 
-            // preserve identity on edit
             if (existing != null && existing.getId() != null) {
                 result.setId(existing.getId());
             }

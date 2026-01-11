@@ -2,10 +2,6 @@ package org.example.persistence;
 
 import jakarta.persistence.*;
 
-/**
- * Base entity for products.
- * Uses SINGLE_TABLE inheritance to match the iteration 6 requirement.
- */
 @Entity
 @Table(name = "produse")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -38,10 +34,6 @@ public abstract class ProdusEntity {
         return id;
     }
 
-    /**
-     * Intended for internal use (mapper/upsert). When ID is set, Hibernate will treat the entity as existing
-     * on merge() and will keep row identity.
-     */
     public void setId(Long id) {
         this.id = id;
     }
@@ -70,5 +62,3 @@ public abstract class ProdusEntity {
         this.vegetarian = vegetarian;
     }
 }
-
-

@@ -6,10 +6,6 @@ import org.example.persistence.OfferSettingsRepository;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Offer configuration shared across controllers.
- * Backed by DB (offer_settings) to persist last manager selection across restarts.
- */
 public final class OfferConfig {
 
     public enum OfferType {
@@ -24,12 +20,10 @@ public final class OfferConfig {
     private final OfferSettingsRepository repo = new OfferSettingsRepository();
 
     private OfferConfig() {
-        // default: enabled
         for (OfferType t : OfferType.values()) {
             enabled.put(t, Boolean.TRUE);
         }
 
-        // Best-effort load from DB. If DB isn't ready yet, keep defaults.
         try {
             loadFromDb();
         } catch (Exception ignored) {
@@ -48,7 +42,6 @@ public final class OfferConfig {
         enabled.put(type, value);
     }
 
-    /** Reload toggles from DB into memory. */
     public void loadFromDb() {
         OfferSettings s = repo.ensureDefault();
         enabled.put(OfferType.HAPPY_HOUR, s.isHappyHourEnabled());
@@ -56,7 +49,6 @@ public final class OfferConfig {
         enabled.put(OfferType.PARTY_PACK, s.isPartyPackEnabled());
     }
 
-    /** Save current in-memory toggles to DB. */
     public void saveToDb() {
         OfferSettings s = new OfferSettings(
                 isEnabled(OfferType.HAPPY_HOUR),

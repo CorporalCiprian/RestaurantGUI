@@ -2,17 +2,21 @@ package org.example.ui.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import org.example.Bautura;
 import org.example.Mancare;
 import org.example.Pizza;
 import org.example.Produs;
 import org.example.service.MenuQueryService;
+import org.example.ui.util.FxAsync;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,16 +54,44 @@ public class GuestController {
     @FXML
     private Label detailsLabel;
 
+    @FXML
+    private StackPane loadingOverlay;
+    @FXML
+    private Label loadingLabel;
+
     private final MenuQueryService menuQueryService = new MenuQueryService();
     private final ObservableList<Produs> allProducts = FXCollections.observableArrayList();
     private Set<String> dessertNamesLowercase = java.util.Collections.emptySet();
 
+    private void setLoading(boolean loading, String message) {
+        if (loadingLabel != null && message != null) {
+            loadingLabel.setText(message);
+        }
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisible(loading);
+            loadingOverlay.setManaged(loading);
+        }
+
+        boolean disable = loading;
+        if (nameFilterField != null) nameFilterField.setDisable(disable);
+        if (typeFilterComboBox != null) typeFilterComboBox.setDisable(disable);
+        if (minPriceField != null) minPriceField.setDisable(disable);
+        if (maxPriceField != null) maxPriceField.setDisable(disable);
+        if (vegetarianFilterCheckBox != null) vegetarianFilterCheckBox.setDisable(disable);
+        if (dessertFilterCheckBox != null) dessertFilterCheckBox.setDisable(disable);
+        if (menuListView != null) menuListView.setDisable(disable);
+    }
+
+    private void showError(String title, Throwable e) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(e == null ? "Unknown error" : String.valueOf(e.getMessage()));
+        a.showAndWait();
+    }
+
     @FXML
     public void initialize() {
-        allProducts.setAll(menuQueryService.getAllProducts());
-        dessertNamesLowercase = menuQueryService.getDessertFoodNamesLowercase();
-        menuListView.setItems(allProducts);
-
         typeFilterComboBox.setItems(FXCollections.observableArrayList("All", "Pizza", "Mancare", "Bautura"));
         typeFilterComboBox.setValue("All");
 
@@ -99,12 +131,32 @@ public class GuestController {
                 detailsLabel.setText("");
             }
         });
+
+        setLoading(true, "Loading menu...");
+        Task<Void> loadTask = new Task<>() {
+            java.util.List<Produs> products;
+            java.util.Set<String> desserts;
+
+            @Override
+            protected Void call() {
+                products = menuQueryService.getAllProducts();
+                desserts = menuQueryService.getDessertFoodNamesLowercase();
+                return null;
+            }
+        };
+        loadTask.setOnSucceeded(e -> {
+            allProducts.setAll(menuQueryService.getAllProducts());
+            dessertNamesLowercase = menuQueryService.getDessertFoodNamesLowercase();
+            menuListView.setItems(allProducts);
+            setLoading(false, null);
+        });
+        loadTask.setOnFailed(e -> {
+            setLoading(false, null);
+            showError("Load failed", loadTask.getException());
+        });
+        FxAsync.submit(loadTask);
     }
 
-    /**
-     * Optional-based search requirement: try to find an exact match by name (case-insensitive).
-     * If found, select it in the list so details panel updates.
-     */
     private void applyExactNameSearchSelection() {
         String q = nameFilterField.getText();
         if (q == null || q.isBlank()) return;

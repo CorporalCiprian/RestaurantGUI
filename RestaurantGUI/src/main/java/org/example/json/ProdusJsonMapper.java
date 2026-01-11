@@ -5,12 +5,6 @@ import org.example.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Maps between the domain model ({@link Produs}) and JSON DTOs.
- *
- * Domain classes are not Jackson-friendly (no default constructors), so we
- * serialize/deserialize via DTOs.
- */
 public final class ProdusJsonMapper {
     private ProdusJsonMapper() {
     }
@@ -36,9 +30,6 @@ public final class ProdusJsonMapper {
         throw new IllegalArgumentException("Tip produs necunoscut: " + p.getClass());
     }
 
-    /**
-     * Backward compatible: also accepts JSONs that don't contain "tip" by inferring type.
-     */
     public static Produs toDomain(ProdusJsonDto dto) {
         if (dto == null) return null;
 
@@ -49,7 +40,6 @@ public final class ProdusJsonMapper {
             Pizza.Builder builder = new Pizza.Builder(blat, sos)
                     .nume(dto.getNume())
                     .vegetarian(dto.isVegetarian())
-                    // baza is not stored separately; use total price and then override.
                     .baza(dto.getPret());
 
             if (p.getToppings() != null) {
@@ -57,7 +47,6 @@ public final class ProdusJsonMapper {
             }
 
             Pizza pizza = builder.build();
-            // Keep the exact stored price (don't force recomputation)
             pizza.setPret(dto.getPret());
             return pizza;
         }
@@ -75,9 +64,6 @@ public final class ProdusJsonMapper {
         throw new IllegalArgumentException("Tip DTO necunoscut: " + dto.getClass());
     }
 
-    /**
-     * Inference helper for legacy files (without "tip").
-     */
     public static ProdusJsonDto inferDto(String nume, double pret, boolean vegetarian,
                                         Integer gramaj, Integer volum,
                                         Pizza.TipBlat blat, Pizza.TipSos sos,
@@ -91,7 +77,6 @@ public final class ProdusJsonMapper {
         if (volum != null) {
             return new BauturaJsonDto(nume, pret, vegetarian, volum);
         }
-        // Default fallback
         return new MancareJsonDto(nume, pret, vegetarian, 1);
     }
 
@@ -99,4 +84,3 @@ public final class ProdusJsonMapper {
         return toppings == null ? List.of() : toppings;
     }
 }
-

@@ -5,10 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Stores manager-selected offer toggles in DB so they persist across restarts.
- * Single-row table (id = 1).
- */
 @Entity
 @Table(name = "offer_settings")
 public class OfferSettings {
@@ -67,4 +63,3 @@ public class OfferSettings {
         this.partyPackEnabled = partyPackEnabled;
     }
 }
-

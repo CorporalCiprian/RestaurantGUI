@@ -13,7 +13,6 @@ public class OfferSettingsRepository {
         }
     }
 
-    /** Upsert the single settings row (id=1) using merge(). */
     public OfferSettings save(OfferSettings settings) {
         if (settings == null) throw new IllegalArgumentException("settings");
         settings.setId(1);
@@ -31,9 +30,7 @@ public class OfferSettingsRepository {
         }
     }
 
-    /** Ensures a row exists; returns existing or creates defaults (all true). */
     public OfferSettings ensureDefault() {
         return get().orElseGet(() -> save(new OfferSettings(true, true, true)));
     }
 }
-

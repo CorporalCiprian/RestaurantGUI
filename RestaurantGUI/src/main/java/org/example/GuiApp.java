@@ -10,7 +10,13 @@ import org.example.persistence.DatabaseSeeder;
 import org.example.persistence.JpaUtil;
 import org.example.persistence.ProdusRepository;
 import org.example.service.AuthService;
+import org.example.service.MenuQueryService;
+import org.example.ui.ViewUI;
 import org.example.ui.controllers.LoginController;
+import org.example.ui.util.AppExecutors;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class GuiApp extends Application {
 
@@ -20,19 +26,21 @@ public class GuiApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Seed the database with initial data
         new DatabaseSeeder(new ProdusRepository()).seedIfEmpty();
 
-        // Seed with a manager and a staff user
+        if (!getParameters().getRaw().isEmpty() && "menuEditor".equalsIgnoreCase(getParameters().getRaw().getFirst())) {
+            ObservableList<Produs> produse = FXCollections.observableArrayList(new MenuQueryService().getAllProducts());
+            ViewUI.show(primaryStage, produse);
+            return;
+        }
+
         AuthService authService = new AuthService();
         authService.register("manager", "manager", Role.MANAGER);
         authService.register("staff", "staff", Role.STAFF);
 
-
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/ui/views/login.fxml"));
         Parent root = loader.load();
 
-        // Optional: inject a shared AuthService instance
         try {
             LoginController controller = loader.getController();
             if (controller != null) {
@@ -48,9 +56,13 @@ public class GuiApp extends Application {
 
     @Override
     public void stop() {
-        // ensure JPA resources are released
         try {
             JpaUtil.shutdown();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            AppExecutors.shutdownBestEffort();
         } catch (Exception ignored) {
         }
     }

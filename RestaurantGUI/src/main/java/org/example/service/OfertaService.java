@@ -8,20 +8,26 @@ import org.example.model.ComandaItem;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class OfertaService {
 
     private final OfferConfig offerConfig;
+    private final MenuQueryService menuQueryService;
 
     public OfertaService() {
-        this(OfferConfig.getInstance());
+        this(OfferConfig.getInstance(), new MenuQueryService());
     }
 
     public OfertaService(OfferConfig offerConfig) {
-        this.offerConfig = offerConfig;
+        this(offerConfig, new MenuQueryService());
     }
 
-    /** A single discount line to be shown on the receipt (bon). Amount is positive (RON). */
+    public OfertaService(OfferConfig offerConfig, MenuQueryService menuQueryService) {
+        this.offerConfig = offerConfig;
+        this.menuQueryService = menuQueryService;
+    }
+
     public static final class DiscountLine {
         private final OfferConfig.OfferType type;
         private final String label;
@@ -46,7 +52,6 @@ public class OfertaService {
         }
     }
 
-    /** Result object for receipt display: subtotal, applied discounts (if any), and final total. */
     public static final class Receipt {
         private final double subtotal;
         private final List<DiscountLine> discounts;
@@ -75,10 +80,6 @@ public class OfertaService {
         }
     }
 
-    /**
-     * Computes totals and a breakdown of discounts for receipt printing.
-     * Discount line amounts are positive numbers (RON) and should be displayed as negative on the bon.
-     */
     public Receipt calculateReceipt(List<ComandaItem> items) {
         double subtotal = items.stream().mapToDouble(item -> productPrice(item) * item.getCantitate()).sum();
 
@@ -165,6 +166,8 @@ public class OfertaService {
         });
         if (!hasPizza) return 0;
 
+        Set<String> dessertNamesLower = menuQueryService.getDessertFoodNamesLowercase();
+
         return items.stream()
                 .filter(i -> {
                     Produs d = i.getProdusDomain();
@@ -173,7 +176,8 @@ public class OfertaService {
                 })
                 .filter(i -> {
                     String name = i.getProdusDomain() != null ? i.getProdusDomain().getNume() : i.getProductName();
-                    return MealDealDessertClassifier.isDessertName(name);
+                    if (name == null || name.isBlank()) return false;
+                    return dessertNamesLower.contains(name.trim().toLowerCase());
                 })
                 .min(Comparator.comparing(OfertaService::productPrice))
                 .map(i -> productPrice(i) * 0.25)

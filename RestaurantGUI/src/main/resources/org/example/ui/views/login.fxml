@@ -14,7 +14,7 @@
     <Label text="Login"/>
     <TextField fx:id="usernameField" promptText="Username"/>
     <PasswordField fx:id="passwordField" promptText="Password"/>
-    <Button text="Login" onAction="#login"/>
-    <Button text="Continue as Guest" onAction="#loginAsGuest"/>
+    <Button fx:id="loginButton" text="Login" onAction="#login"/>
+    <Button fx:id="guestButton" text="Continue as Guest" onAction="#loginAsGuest"/>
     <Label fx:id="errorLabel" textFill="RED"/>
 </VBox>

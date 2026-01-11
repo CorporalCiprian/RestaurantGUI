@@ -3,11 +3,6 @@ package org.example.json;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-/**
- * JSON DTO for {@code Produs} hierarchy.
- *
- * We keep a stable on-disk format independent of the JavaFX domain model.
- */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tip")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = PizzaJsonDto.class, name = "PIZZA"),

@@ -3,9 +3,6 @@ package org.example;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Central place for the sample menu items used across CLI/GUI/DB seeding.
- */
 public final class SampleDataFactory {
     private SampleDataFactory() {
     }

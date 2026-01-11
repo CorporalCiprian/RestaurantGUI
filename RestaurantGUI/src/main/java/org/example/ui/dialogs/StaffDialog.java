@@ -6,7 +6,6 @@ import javafx.scene.layout.GridPane;
 
 import java.util.Optional;
 
-/** Simple dialog for creating a staff user. */
 public final class StaffDialog {
 
     private StaffDialog() {
@@ -53,4 +52,3 @@ public final class StaffDialog {
         return dialog.showAndWait();
     }
 }
-

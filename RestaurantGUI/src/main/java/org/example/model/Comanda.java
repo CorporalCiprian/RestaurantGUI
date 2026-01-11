@@ -39,7 +39,6 @@ public class Comanda {
         @Column(name = "label")
         private String label;
 
-        /** Positive amount in RON. */
         @Column(name = "amount")
         private Double amount;
 
@@ -112,7 +111,6 @@ public class Comanda {
         this.items = items == null ? new ArrayList<>() : items;
     }
 
-    /** Convenience: add item and set back-reference. */
     public void addItem(ComandaItem item) {
         if (item == null) return;
         item.setComanda(this);

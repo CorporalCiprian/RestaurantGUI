@@ -1,9 +1,11 @@
 package org.example.ui.controllers;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -11,6 +13,7 @@ import javafx.stage.Stage;
 import org.example.auth.Role;
 import org.example.model.User;
 import org.example.service.AuthService;
+import org.example.ui.util.FxAsync;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -26,9 +29,14 @@ public class LoginController {
     @FXML
     private Label errorLabel;
 
+    @FXML
+    private Button loginButton;
+
+    @FXML
+    private Button guestButton;
+
     private AuthService authService = new AuthService();
 
-    /** Allows injecting AuthService from application bootstrap (optional). */
     public void setAuthService(AuthService authService) {
         if (authService != null) {
             this.authService = authService;
@@ -45,13 +53,41 @@ public class LoginController {
             return;
         }
 
-        Optional<User> user = authService.login(username, password);
+        setUiBusy(true);
+        errorLabel.setText("Logging in...");
 
-        if (user.isPresent()) {
-            openRoleView(user.get().getRole(), user);
-        } else {
-            errorLabel.setText("Invalid username or password.");
-        }
+        Task<Optional<User>> task = new Task<>() {
+            @Override
+            protected Optional<User> call() {
+                return authService.login(username, password);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            setUiBusy(false);
+            Optional<User> user = task.getValue();
+            if (user != null && user.isPresent()) {
+                errorLabel.setText("");
+                openRoleView(user.get().getRole(), user);
+            } else {
+                errorLabel.setText("Invalid username or password.");
+            }
+        });
+
+        task.setOnFailed(e -> {
+            setUiBusy(false);
+            Throwable ex = task.getException();
+            errorLabel.setText(ex == null ? "Login failed." : ("Login failed: " + ex.getMessage()));
+        });
+
+        FxAsync.submit(task);
+    }
+
+    private void setUiBusy(boolean busy) {
+        if (usernameField != null) usernameField.setDisable(busy);
+        if (passwordField != null) passwordField.setDisable(busy);
+        if (loginButton != null) loginButton.setDisable(busy);
+        if (guestButton != null) guestButton.setDisable(busy);
     }
 
     @FXML

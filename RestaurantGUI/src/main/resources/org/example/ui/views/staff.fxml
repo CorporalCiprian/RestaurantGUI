@@ -10,76 +10,91 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.ProgressIndicator?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.StaffController">
-    <center>
-        <TabPane>
-            <tabs>
-                <Tab text="Comanda" closable="false">
-                    <BorderPane>
-                        <left>
-                            <VBox spacing="10">
-                                <padding>
-                                    <Insets top="10" right="10" bottom="10" left="10"/>
-                                </padding>
-                                <Label text="Tables"/>
-                                <ListView fx:id="tablesListView"/>
-                            </VBox>
-                        </left>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.StaffController">
+    <BorderPane>
+        <center>
+            <TabPane>
+                <tabs>
+                    <Tab text="Comanda" closable="false">
+                        <BorderPane>
+                            <left>
+                                <VBox spacing="10">
+                                    <padding>
+                                        <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="Tables"/>
+                                    <ListView fx:id="tablesListView"/>
+                                </VBox>
+                            </left>
 
-                        <center>
-                            <VBox fx:id="orderingCenterPane" spacing="10">
-                                <padding>
-                                    <Insets top="10" right="10" bottom="10" left="10"/>
-                                </padding>
+                            <center>
+                                <VBox fx:id="orderingCenterPane" spacing="10">
+                                    <padding>
+                                        <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
 
-                                <Label fx:id="selectTableHintLabel" text="Selectează o masă ca să vezi meniul"/>
+                                    <Label fx:id="selectTableHintLabel" text="Selectează o masă ca să vezi meniul"/>
 
-                                <GridPane fx:id="menuPane" hgap="10" vgap="10">
-                                    <ListView fx:id="menuListView" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                                    <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                        <Label text="Product Details"/>
-                                        <Label fx:id="productNameLabel"/>
-                                        <Label fx:id="productPriceLabel"/>
-                                        <Button fx:id="addToCartButton" text="Add to Cart" onAction="#addToCart"/>
-                                    </VBox>
-                                </GridPane>
-                            </VBox>
-                        </center>
+                                    <GridPane fx:id="menuPane" hgap="10" vgap="10">
+                                        <ListView fx:id="menuListView" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <Label text="Product Details"/>
+                                            <Label fx:id="productNameLabel"/>
+                                            <Label fx:id="productPriceLabel"/>
+                                            <Button fx:id="addToCartButton" text="Add to Cart" onAction="#addToCart"/>
+                                        </VBox>
+                                    </GridPane>
+                                </VBox>
+                            </center>
 
-                        <right>
-                            <VBox fx:id="cartPane" spacing="10">
-                                <padding>
-                                    <Insets top="10" right="10" bottom="10" left="10"/>
-                                </padding>
-                                <Label text="Cart"/>
-                                <ListView fx:id="cartListView"/>
-                                <HBox spacing="5">
-                                    <Button fx:id="increaseButton" text="+" onAction="#increaseQuantity"/>
-                                    <Button fx:id="decreaseButton" text="-" onAction="#decreaseQuantity"/>
-                                    <Button fx:id="removeButton" text="Remove" onAction="#removeFromCart"/>
-                                </HBox>
-                                <Label fx:id="totalLabel"/>
-                                <Label text="Bon (reduceri):"/>
-                                <Label fx:id="receiptDetailsLabel" wrapText="true"/>
-                                <Button fx:id="placeOrderButton" text="Place Order" onAction="#placeOrder"/>
-                            </VBox>
-                        </right>
-                    </BorderPane>
-                </Tab>
+                            <right>
+                                <VBox fx:id="cartPane" spacing="10">
+                                    <padding>
+                                        <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <Label text="Cart"/>
+                                    <ListView fx:id="cartListView"/>
+                                    <HBox spacing="5">
+                                        <Button fx:id="increaseButton" text="+" onAction="#increaseQuantity"/>
+                                        <Button fx:id="decreaseButton" text="-" onAction="#decreaseQuantity"/>
+                                        <Button fx:id="removeButton" text="Remove" onAction="#removeFromCart"/>
+                                    </HBox>
+                                    <Label fx:id="totalLabel"/>
+                                    <Label text="Bon (reduceri):"/>
+                                    <Label fx:id="receiptDetailsLabel" wrapText="true"/>
+                                    <Button fx:id="placeOrderButton" text="Place Order" onAction="#placeOrder"/>
+                                </VBox>
+                            </right>
+                        </BorderPane>
+                    </Tab>
 
-                <Tab text="Istoric" closable="false">
-                    <VBox spacing="10">
-                        <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
-                        </padding>
-                        <Label text="Order History (doar comenzile mele)"/>
-                        <ListView fx:id="orderHistoryListView"/>
-                        <Label text="Bon (comanda selectată):"/>
-                        <Label fx:id="orderReceiptDetailsLabel" wrapText="true"/>
-                    </VBox>
-                </Tab>
-            </tabs>
-        </TabPane>
-    </center>
-</BorderPane>
+                    <Tab text="Istoric" closable="false">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <Label text="Order History (doar comenzile mele)"/>
+                            <ListView fx:id="orderHistoryListView"/>
+                            <Label text="Bon (comanda selectată):"/>
+                            <Label fx:id="orderReceiptDetailsLabel" wrapText="true"/>
+                        </VBox>
+                    </Tab>
+                </tabs>
+            </TabPane>
+        </center>
+    </BorderPane>
+
+    <!-- Loading overlay (shown during DB operations) -->
+    <StackPane fx:id="loadingOverlay" visible="false" managed="false">
+        <Pane style="-fx-background-color: rgba(0,0,0,0.25);" />
+        <VBox spacing="10" alignment="CENTER">
+            <ProgressIndicator />
+            <Label fx:id="loadingLabel" text="Loading..." style="-fx-text-fill: white; -fx-font-size: 14px;" />
+        </VBox>
+    </StackPane>
+</StackPane>
+

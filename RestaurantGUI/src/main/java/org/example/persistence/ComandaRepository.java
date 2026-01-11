@@ -28,7 +28,6 @@ public class ComandaRepository {
         entityManager.getTransaction().commit();
     }
 
-
     public List<Comanda> findByOspatar(User ospatar) {
         return entityManager.createQuery("SELECT c FROM Comanda c WHERE c.ospatar = :ospatar", Comanda.class)
                 .setParameter("ospatar", ospatar)
@@ -39,4 +38,3 @@ public class ComandaRepository {
         return entityManager.createQuery("SELECT c FROM Comanda c", Comanda.class).getResultList();
     }
 }
-

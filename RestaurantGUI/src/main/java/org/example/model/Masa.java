@@ -40,4 +40,3 @@ public class Masa {
         return "Table " + numar;
     }
 }
-

@@ -11,77 +11,92 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.ProgressIndicator?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.ManagerController">
-    <center>
-        <TabPane>
-            <tabs>
-                <Tab text="Staff Management">
-                    <VBox spacing="10">
-                        <padding>
-                            <Insets top="10" right="10" bottom="10" left="10"/>
-                        </padding>
-<TableView fx:id="staffTableView">
-    <columns>
-        <TableColumn text="ID" fx:id="staffIdColumn"/>
-        <TableColumn text="Username" fx:id="staffUsernameColumn"/>
-    </columns>
-</TableView>
-<Button text="Add Staff" onAction="#addStaff"/>
-<Button text="Remove Staff" onAction="#removeStaff"/>
-</VBox>
-</Tab>
-<Tab text="Menu Management">
-<VBox spacing="10">
-<padding>
-    <Insets top="10" right="10" bottom="10" left="10"/>
-</padding>
-<TableView fx:id="menuTableView">
-    <columns>
-        <TableColumn text="Name" fx:id="menuNameColumn"/>
-        <TableColumn text="Price" fx:id="menuPriceColumn"/>
-        <TableColumn text="Type" fx:id="menuTypeColumn"/>
-        <TableColumn text="Details" fx:id="menuDetailsColumn"/>
-    </columns>
-</TableView>
-<Button text="Add Product" onAction="#addProduct"/>
-<Button text="Edit Product" onAction="#editProduct"/>
-<Button text="Remove Product" onAction="#removeProduct"/>
-<Button text="Import/Export JSON" onAction="#importExportJson"/>
-</VBox>
-</Tab>
-<Tab text="Offers Management">
-<VBox spacing="10">
-<padding>
-    <Insets top="10" right="10" bottom="10" left="10"/>
-</padding>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.ManagerController">
+    <BorderPane>
+        <center>
+            <TabPane>
+                <tabs>
+                    <Tab text="Staff Management">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <TableView fx:id="staffTableView">
+                                <columns>
+                                    <TableColumn text="ID" fx:id="staffIdColumn"/>
+                                    <TableColumn text="Username" fx:id="staffUsernameColumn"/>
+                                </columns>
+                            </TableView>
+                            <Button text="Add Staff" onAction="#addStaff"/>
+                            <Button text="Remove Staff" onAction="#removeStaff"/>
+                        </VBox>
+                    </Tab>
+                    <Tab text="Menu Management">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <TableView fx:id="menuTableView">
+                                <columns>
+                                    <TableColumn text="Name" fx:id="menuNameColumn"/>
+                                    <TableColumn text="Price" fx:id="menuPriceColumn"/>
+                                    <TableColumn text="Type" fx:id="menuTypeColumn"/>
+                                    <TableColumn text="Details" fx:id="menuDetailsColumn"/>
+                                </columns>
+                            </TableView>
+                            <Button text="Add Product" onAction="#addProduct"/>
+                            <Button text="Edit Product" onAction="#editProduct"/>
+                            <Button text="Remove Product" onAction="#removeProduct"/>
+                            <Button fx:id="importExportButton" text="Import/Export JSON" onAction="#importExportJson"/>
+                        </VBox>
+                    </Tab>
+                    <Tab text="Offers Management">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
 
-<Label text="Active offers:" />
-<HBox spacing="10">
-    <CheckBox fx:id="happyHourCheckBox" text="Happy Hour Drinks" />
-    <CheckBox fx:id="mealDealCheckBox" text="Meal Deal" />
-    <CheckBox fx:id="partyPackCheckBox" text="Party Pack" />
-</HBox>
+                            <Label text="Active offers:" />
+                            <HBox spacing="10">
+                                <CheckBox fx:id="happyHourCheckBox" text="Happy Hour Drinks" />
+                                <CheckBox fx:id="mealDealCheckBox" text="Meal Deal" />
+                                <CheckBox fx:id="partyPackCheckBox" text="Party Pack" />
+                            </HBox>
 
-<Button text="Save Offers" onAction="#saveOffers" />
-</VBox>
-</Tab>
-<Tab text="Global Order History">
-<VBox spacing="10">
-<padding>
-    <Insets top="10" right="10" bottom="10" left="10"/>
-</padding>
-<TableView fx:id="globalHistoryTableView">
-    <columns>
-        <TableColumn text="ID" fx:id="historyIdColumn"/>
-        <TableColumn text="Staff" fx:id="historyStaffColumn"/>
-        <TableColumn text="Table" fx:id="historyTableColumn"/>
-        <TableColumn text="Total" fx:id="historyTotalColumn"/>
-    </columns>
-</TableView>
-                    </VBox>
-                </Tab>
-            </tabs>
-        </TabPane>
-    </center>
-</BorderPane>
+                            <Button fx:id="saveOffersButton" text="Save Offers" onAction="#saveOffers" />
+                        </VBox>
+                    </Tab>
+                    <Tab text="Global Order History">
+                        <VBox spacing="10">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <TableView fx:id="globalHistoryTableView">
+                                <columns>
+                                    <TableColumn text="ID" fx:id="historyIdColumn"/>
+                                    <TableColumn text="Staff" fx:id="historyStaffColumn"/>
+                                    <TableColumn text="Table" fx:id="historyTableColumn"/>
+                                    <TableColumn text="Total" fx:id="historyTotalColumn"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+                </tabs>
+            </TabPane>
+        </center>
+    </BorderPane>
+
+    <!-- Loading overlay (shown during DB/file operations) -->
+    <StackPane fx:id="loadingOverlay" visible="false" managed="false">
+        <Pane style="-fx-background-color: rgba(0,0,0,0.25);" />
+        <VBox spacing="10" alignment="CENTER">
+            <ProgressIndicator />
+            <Label fx:id="loadingLabel" text="Loading..." style="-fx-text-fill: white; -fx-font-size: 14px;" />
+        </VBox>
+    </StackPane>
+</StackPane>
+

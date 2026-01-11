@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/** Import/export menu products as JSON using the existing DTO format. */
 public class JsonMenuService {
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -35,10 +34,6 @@ public class JsonMenuService {
         mapper.writerWithDefaultPrettyPrinter().writeValue(file, dtos);
     }
 
-    /**
-     * Imports menu products from JSON.
-     * Behavior: REPLACE (delete existing products, then insert products from JSON).
-     */
     public void importMenu(File file) throws IOException {
         if (file == null) throw new IllegalArgumentException("file");
         List<ProdusJsonDto> dtos = LegacyProdusListReader.readDtos(mapper, file);
@@ -47,7 +42,6 @@ public class JsonMenuService {
                 .map(ProdusMapper::toEntity)
                 .toList();
 
-        // Strict replace: delete existing products and re-populate from file.
         produsRepository.replaceAll(entities);
     }
 }

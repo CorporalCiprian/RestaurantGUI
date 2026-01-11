@@ -8,36 +8,50 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.ProgressIndicator?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.GuestController">
-    <left>
-        <ListView fx:id="menuListView"/>
-    </left>
-    <center>
-        <VBox spacing="10" alignment="TOP_LEFT">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-            <Label text="Filter by Name:"/>
-            <TextField fx:id="nameFilterField"/>
-            <Label text="Filter by Type:"/>
-            <ComboBox fx:id="typeFilterComboBox"/>
-            <Label text="Price Range:"/>
-            <TextField fx:id="minPriceField" promptText="Min Price"/>
-            <TextField fx:id="maxPriceField" promptText="Max Price"/>
-            <CheckBox fx:id="vegetarianFilterCheckBox" text="Vegetarian"/>
-            <CheckBox fx:id="dessertFilterCheckBox" text="Dessert"/>
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.GuestController">
+    <BorderPane>
+        <left>
+            <ListView fx:id="menuListView"/>
+        </left>
+        <center>
+            <VBox spacing="10" alignment="TOP_LEFT">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="Filter by Name:"/>
+                <TextField fx:id="nameFilterField"/>
+                <Label text="Filter by Type:"/>
+                <ComboBox fx:id="typeFilterComboBox"/>
+                <Label text="Price Range:"/>
+                <TextField fx:id="minPriceField" promptText="Min Price"/>
+                <TextField fx:id="maxPriceField" promptText="Max Price"/>
+                <CheckBox fx:id="vegetarianFilterCheckBox" text="Vegetarian"/>
+                <CheckBox fx:id="dessertFilterCheckBox" text="Dessert"/>
+            </VBox>
+        </center>
+        <right>
+            <VBox spacing="10" alignment="TOP_LEFT" fx:id="detailsPane">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="Details"/>
+                <Label fx:id="nameLabel"/>
+                <Label fx:id="priceLabel"/>
+                <Label fx:id="detailsLabel"/>
+            </VBox>
+        </right>
+    </BorderPane>
+
+    <!-- Loading overlay (shown during initial DB load) -->
+    <StackPane fx:id="loadingOverlay" visible="false" managed="false">
+        <Pane style="-fx-background-color: rgba(0,0,0,0.25);" />
+        <VBox spacing="10" alignment="CENTER">
+            <ProgressIndicator />
+            <Label fx:id="loadingLabel" text="Loading..." style="-fx-text-fill: white; -fx-font-size: 14px;" />
         </VBox>
-    </center>
-    <right>
-        <VBox spacing="10" alignment="TOP_LEFT" fx:id="detailsPane">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-            <Label text="Details"/>
-            <Label fx:id="nameLabel"/>
-            <Label fx:id="priceLabel"/>
-            <Label fx:id="detailsLabel"/>
-        </VBox>
-    </right>
-</BorderPane>
+    </StackPane>
+</StackPane>

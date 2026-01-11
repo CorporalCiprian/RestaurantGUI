@@ -22,4 +22,3 @@ public class MasaRepository {
         entityManager.getTransaction().commit();
     }
 }
-
