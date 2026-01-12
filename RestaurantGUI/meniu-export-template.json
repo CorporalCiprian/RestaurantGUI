@@ -20,16 +20,4 @@
   "blat" : "CLASIC",
   "sos" : "ROSU",
   "toppings" : [ "MOZZARELLA", "MASLINE" ]
-}, {
-  "nume" : "Pizza Pepperoni",
-  "pret" : 45.0,
-  "vegetarian" : false,
-  "blat" : "CLASIC",
-  "sos" : "ROSU",
-  "toppings" : [ "SALAM", "CIUPERCI" ]
-}, {
-  "nume" : "Tiramisu",
-  "pret" : 22.0,
-  "vegetarian" : true,
-  "gramaj" : 150
 } ]

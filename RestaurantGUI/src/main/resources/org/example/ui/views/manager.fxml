@@ -14,9 +14,23 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuItem?>
 
 <StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.ui.controllers.ManagerController">
     <BorderPane>
+        <top>
+            <MenuBar>
+                <menus>
+                    <Menu text="File">
+                        <items>
+                            <MenuItem text="Import/Export JSON" onAction="#importExportJson" />
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
+        </top>
         <center>
             <TabPane>
                 <tabs>
@@ -51,7 +65,6 @@
                             <Button text="Add Product" onAction="#addProduct"/>
                             <Button text="Edit Product" onAction="#editProduct"/>
                             <Button text="Remove Product" onAction="#removeProduct"/>
-                            <Button fx:id="importExportButton" text="Import/Export JSON" onAction="#importExportJson"/>
                         </VBox>
                     </Tab>
                     <Tab text="Offers Management">
